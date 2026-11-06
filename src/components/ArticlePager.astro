@@ -1,0 +1,52 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { entryLang, postHref } from '../lib/content';
+import { langFromUrl, t } from '../i18n/ui';
+
+/**
+ * Chronological navigation between articles, shown on every article page. `older` was published
+ * before this article, `newer` after it. Renders nothing when neither exists.
+ */
+interface Props {
+  older?: CollectionEntry<'blog'>;
+  newer?: CollectionEntry<'blog'>;
+}
+
+const { older, newer } = Astro.props;
+const lang = langFromUrl(Astro.url);
+const ui = t(lang);
+
+---
+{(older || newer) && (
+  <nav class="pager" aria-label={ui.moreArticles} data-pagefind-ignore>
+    <ul>
+      {older && (
+        <li class="older">
+          <span class="dir">{ui.olderArticle}</span>
+          <a href={postHref(older)} rel="prev" lang={entryLang(older) !== lang ? 'en' : undefined}>{older.data.title}</a>
+          {older.data.example && <span class="badge notice">{ui.example}</span>}
+        </li>
+      )}
+      {newer && (
+        <li class="newer">
+          <span class="dir">{ui.newerArticle}</span>
+          <a href={postHref(newer)} rel="next" lang={entryLang(newer) !== lang ? 'en' : undefined}>{newer.data.title}</a>
+          {newer.data.example && <span class="badge notice">{ui.example}</span>}
+        </li>
+      )}
+    </ul>
+  </nav>
+)}
+
+<style>
+  .pager { margin-top: var(--space-5); padding-block: var(--space-4); border-block: 1px solid var(--rule); }
+  ul { list-style: none; display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3); margin: 0; padding: 0; }
+  li { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-1); }
+  .newer { align-items: flex-end; }
+  .dir { font-family: var(--font-mono); font-size: 0.8rem; color: var(--ink-muted); }
+  a { font-family: var(--font-serif); font-size: 1.1rem; font-weight: 600; }
+  @media (min-width: 40rem) {
+    ul { grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+    .newer { grid-column: 2; text-align: right; }
+  }
+</style>

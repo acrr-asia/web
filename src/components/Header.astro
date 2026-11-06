@@ -1,0 +1,98 @@
+---
+import { publicPath } from '../lib/path';
+import { LANGS, LANG_NAMES, LANG_TAGS, langFromUrl, localizePath, t, unlocalizePath, type Lang } from '../i18n/ui';
+
+interface Props {
+  /** Public path of this page in each language; missing when that version does not exist. */
+  alternates?: Partial<Record<Lang, string>>;
+}
+
+const lang = langFromUrl(Astro.url);
+const ui = t(lang);
+const nav = (['blog', 'series', 'learning', 'insights', 'about'] as const).map((key) => ({
+  href: localizePath(`/${key}`, lang),
+  label: ui.nav[key],
+}));
+const home = localizePath('/', lang);
+// Astro.url.pathname is "/blog.html" in the production build (build.format 'file') but "/blog" in
+// dev, so it must be normalised before comparing with the extensionless nav hrefs.
+const path = publicPath(Astro.url.pathname);
+// The switcher offers the other language: this page's counterpart when it exists, otherwise the
+// nearest page that does, the section index (/blog for an untranslated article, /insights, /series),
+// marked as such so the reader knows the page itself is not translated.
+const section = unlocalizePath(path).match(/^\/(blog|insights|series|tags)\//)?.[1];
+const fallback = section ? `/${section}` : '/';
+const others = LANGS.filter((l) => l !== lang).map((l) => ({
+  lang: l,
+  href: Astro.props.alternates?.[l] ?? localizePath(fallback, l),
+  translated: Boolean(Astro.props.alternates?.[l]),
+}));
+---
+<header class="site-header">
+  <div class="container bar">
+    <a class="brand" href={home} aria-label={ui.homeLabel} aria-current={path === home ? 'page' : undefined}>ACRR</a>
+    <nav aria-label={ui.primaryNav}>
+      <ul>
+        {nav.map((n) => (
+          <li>
+            <a href={n.href} aria-current={path === n.href || path.startsWith(n.href + '/') ? 'page' : undefined}>{n.label}</a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+    <div class="tools">
+      {others.map((o) => {
+        const label = o.translated ? LANG_NAMES[o.lang] : `${LANG_NAMES[o.lang]} (${t(o.lang).noTranslation})`;
+        return (
+          <a class="icon-btn" href={o.href} hreflang={LANG_TAGS[o.lang]} aria-label={label} title={label}>
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M3 12h18M12 3c2.5 2.5 3.8 5.5 3.8 9s-1.3 6.5-3.8 9c-2.5-2.5-3.8-5.5-3.8-9s1.3-6.5 3.8-9z" />
+            </svg>
+          </a>
+        );
+      })}
+      <button type="button" class="icon-btn" data-search-open aria-label={ui.searchAria} title={ui.searchAria}>
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
+          <circle cx="10.5" cy="10.5" r="6.5" />
+          <path d="M15.5 15.5 21 21" />
+        </svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<style>
+  .site-header { border-bottom: 1px solid var(--rule); }
+  /* Wide: brand left, nav and search right. Narrow: brand and search share the first row and the
+     nav gets a full row of its own, instead of wrapping into three ragged rows. */
+  .bar {
+    display: flex; flex-wrap: wrap; align-items: center;
+    gap: var(--space-2) var(--space-4); padding-block: var(--space-3);
+  }
+  .brand { font-family: var(--font-mono); font-weight: 700; letter-spacing: 0.08em; color: var(--ink); text-decoration: none; margin-right: auto; }
+  ul { list-style: none; display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-4); margin: 0; padding: 0; align-items: center; }
+  nav a {
+    display: inline-block; color: var(--ink); text-decoration: none;
+    padding-block: 0.35rem 0.2rem; border-bottom: 2px solid transparent;
+  }
+  nav a:hover { border-color: var(--rule); }
+  nav a[aria-current='page'] { border-color: var(--accent); }
+  /* Language switch and search: icon buttons with an accessible name (aria-label) and a tooltip. */
+  .tools { display: flex; align-items: center; gap: var(--space-2); }
+  .icon-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.25rem;
+    width: 2.25rem; height: 2.25rem; padding: 0;
+    font: inherit; color: var(--ink-muted); background: none; text-decoration: none;
+    border: 1px solid var(--rule); border-radius: 4px; cursor: pointer;
+  }
+  .icon-btn:hover { border-color: var(--accent); color: var(--ink); }
+  .icon-btn svg { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; }
+  @media (max-width: 40rem) {
+    .tools { order: 2; }
+    nav { order: 3; flex-basis: 100%; }
+    /* One row of five items at 360px, in either language. */
+    ul { justify-content: space-between; flex-wrap: nowrap; column-gap: var(--space-2); }
+    nav a { font-size: 0.92rem; white-space: nowrap; }
+  }
+</style>

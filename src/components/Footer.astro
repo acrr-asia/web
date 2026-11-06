@@ -1,0 +1,28 @@
+---
+import { langFromUrl, localizePath, t } from '../i18n/ui';
+
+const year = new Date().getFullYear();
+const lang = langFromUrl(Astro.url);
+const ui = t(lang);
+const links = (['blog', 'series', 'learning', 'insights', 'about', 'tags'] as const).map((key) => ({
+  href: localizePath(`/${key}`, lang),
+  label: ui.nav[key],
+}));
+---
+<footer class="site-footer">
+  <div class="container">
+    <p><strong>ACRR</strong> — {ui.footerAbout}</p>
+    <nav aria-label={ui.footerNav}>
+      {links.map((l) => <><a href={l.href}>{l.label}</a>{' · '}</>)}<a href={localizePath('/rss.xml', lang)}>{ui.nav.rss}</a>
+    </nav>
+    <p class="small">© {year} ACRR.</p>
+  </div>
+</footer>
+
+<style>
+  .site-footer { border-top: 1px solid var(--rule); padding-block: var(--space-5); color: var(--ink-muted); font-size: 0.9rem; }
+  .site-footer p { margin: 0 0 var(--space-2); }
+  .site-footer nav { margin: 0 0 var(--space-2); }
+  .site-footer nav a { display: inline-block; padding-block: 0.3rem; }
+  .small { font-size: 0.8rem; }
+</style>

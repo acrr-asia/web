@@ -1,0 +1,28 @@
+[
+  {
+    "id": "control-systems-study-notes",
+    "title": "Control Systems Study Notes",
+    "description": "Placeholder entry. Study notes to accompany the Foundations of Control Systems series.",
+    "topic": "Robotics and Control",
+    "type": "Study notes",
+    "status": "planned",
+    "vi": {
+      "title": "Ghi chú học tập về hệ thống điều khiển",
+      "description": "Mục tạm. Ghi chú học tập đi kèm chuỗi bài Nền tảng hệ thống điều khiển.",
+      "topic": "Robot và điều khiển"
+    }
+  },
+  {
+    "id": "probability-learning-path",
+    "title": "Probability for Engineers",
+    "description": "Placeholder entry. A learning path from Bayes' rule to Bayesian inference.",
+    "topic": "Mathematical Foundations",
+    "type": "Learning path",
+    "status": "planned",
+    "vi": {
+      "title": "Xác suất cho kỹ sư",
+      "description": "Mục tạm. Lộ trình học từ quy tắc Bayes đến suy luận Bayes.",
+      "topic": "Nền tảng toán học"
+    }
+  }
+]

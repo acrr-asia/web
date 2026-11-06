@@ -1,0 +1,62 @@
+---
+import { langFromUrl, localizePath, t } from '../../i18n/ui';
+
+const lang = langFromUrl(Astro.url);
+const text = {
+  en: {
+    blog: 'Articles, research notes and tutorials, newest first.',
+    series: 'Related articles arranged in a reading order.',
+    learning: 'An index of planned learning paths, study notes and references, still being organized.',
+    insights: 'Short perspectives on advanced computing and robotics.',
+    about: 'What ACRR is for, and how it intends to work.',
+  },
+  vi: {
+    blog: 'Bài viết, ghi chú nghiên cứu và hướng dẫn, mới nhất trước.',
+    series: 'Các bài viết liên quan được sắp xếp theo thứ tự đọc.',
+    learning: 'Danh mục các lộ trình học, ghi chú học tập và tài liệu tham khảo dự kiến, đang được sắp xếp.',
+    insights: 'Những góc nhìn ngắn về điện toán tiên tiến và robot.',
+    about: 'ACRR dùng để làm gì và dự định hoạt động ra sao.',
+  },
+}[lang];
+const sections = (['blog', 'series', 'learning', 'insights', 'about'] as const).map((key) => ({
+  href: localizePath(`/${key}`, lang),
+  title: t(lang).nav[key],
+  text: text[key],
+}));
+---
+<ul class="explore">
+  {sections.map((s) => (
+    <li>
+      <a href={s.href}>
+        <span class="title">{s.title} <span aria-hidden="true">→</span></span>
+        <span class="text">{s.text}</span>
+      </a>
+    </li>
+  ))}
+</ul>
+
+<style>
+  .explore {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr));
+    gap: var(--space-3);
+  }
+  a {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    height: 100%;
+    padding: var(--space-3);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    color: var(--ink);
+    text-decoration: none;
+  }
+  a:hover { border-color: var(--accent); background: var(--bg-subtle); }
+  .title { font-family: var(--font-serif); font-size: 1.15rem; font-weight: 600; }
+  a:hover .title { color: var(--accent); }
+  .text { color: var(--ink-muted); font-size: 0.9rem; }
+</style>

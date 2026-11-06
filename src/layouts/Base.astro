@@ -1,0 +1,78 @@
+---
+import '../styles/global.css';
+import 'katex/dist/katex.min.css';
+import '@fontsource-variable/noto-serif/wght.css';
+import '@fontsource-variable/noto-serif/wght-italic.css';
+import '@fontsource-variable/inter/wght.css';
+import '@fontsource-variable/jetbrains-mono/wght.css';
+import serifLatin from '@fontsource-variable/noto-serif/files/noto-serif-latin-wght-normal.woff2?url';
+import serifVi from '@fontsource-variable/noto-serif/files/noto-serif-vietnamese-wght-normal.woff2?url';
+import sansLatin from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url';
+import sansVi from '@fontsource-variable/inter/files/inter-vietnamese-wght-normal.woff2?url';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import SEO from '../components/SEO.astro';
+import Search from '../components/Search.astro';
+import { publicPath } from '../lib/path';
+import { LANGS, langFromUrl, localizePath, t, unlocalizePath, type Lang } from '../i18n/ui';
+
+interface Props {
+  title: string;
+  description: string;
+  narrow?: boolean;
+  canonical?: string;
+  ogType?: 'website' | 'article';
+  noindex?: boolean;
+  searchable?: boolean;
+  example?: 'article' | 'insight' | 'series';
+  counterpart?: string | null;
+}
+const {
+  title,
+  description,
+  narrow = false,
+  canonical,
+  ogType,
+  noindex = false,
+  searchable = true,
+  example,
+  counterpart,
+} = Astro.props;
+const lang = langFromUrl(Astro.url);
+const ui = t(lang);
+const here = unlocalizePath(publicPath(Astro.url.pathname));
+const englishRoute = counterpart === undefined ? here : counterpart;
+const alternates = Object.fromEntries(
+  LANGS.map((l) => [l, l === lang ? localizePath(here, l) : englishRoute === null ? undefined : localizePath(englishRoute, l)]),
+) as Record<Lang, string | undefined>;
+const baseTitle = title === 'ACRR' ? ui.siteName : `${title} · ACRR`;
+const fullTitle = example ? `${ui.exampleTitlePrefix} ${baseTitle}` : baseTitle;
+const metaDescription = example ? ui.exampleDescription(example, description) : description;
+const ARTICLE_PATH = /^\/(?:blog\/(?!category(?:\/|$))|insights\/)[^/]+/;
+const resolvedOgType = ogType ?? (ARTICLE_PATH.test(here) ? 'article' : 'website');
+const indexed = searchable && !noindex;
+---
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <SEO title={fullTitle} description={metaDescription} canonical={canonical} ogType={resolvedOgType} noindex={noindex} alternates={alternates} lang={lang} />
+    {[serifLatin, sansLatin, ...(lang === 'vi' ? [serifVi, sansVi] : [])].map((href) => (
+      <link rel="preload" href={href} as="font" type="font/woff2" crossorigin />
+    ))}
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="alternate" type="application/rss+xml" title={ui.siteName} href={localizePath('/rss.xml', lang)} />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">{ui.skip}</a>
+    <Header alternates={alternates} />
+    <main id="main" class:list={['container', { narrow }]} data-pagefind-body={indexed ? '' : undefined}>
+      {example && indexed && <span hidden data-pagefind-meta={`example:${ui.example}`}></span>}
+      <slot />
+    </main>
+    <Footer />
+    <Search />
+  </body>
+</html>
